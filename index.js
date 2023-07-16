@@ -80,8 +80,9 @@ async function createProject() {
   log(`Creating a new ${choosenLangage} project in directory ${workDir.directory}`);
 
   if (choosenLangage === 'React') {
-    await createReact(workDir.directory, installationPath)
-    log(`Successfully created a ${choosenLangage} project` )
+    await createReact(workDir.directory, installationPath, choosenLangage)
+  } else if(choosenLangage === 'Angular') {
+    await createVue(workDir.directory, installationPath, choosenLangage)
   }
 }
 
