@@ -2,8 +2,13 @@
 
 import chalk from "chalk";
 import inquirer from 'inquirer';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import createReact from "./filemaker.js";
 
 const log = console.log;
+const defaultPath = path.join(os.homedir(), 'Documents');
 
 async function welcome() {
   log(chalk.green('You want to create a new development project!'));
@@ -46,15 +51,42 @@ async function langage() {
         'Express',
         'Nestjs',
         'Python',
-        'Django',            
+        'Django',
       ],
     });
   }
 
   log(chalk.yellow(`You chose ${answer.front || answer.back}`));
+  return answer.front || answer.back;
 }
 
-langage().catch(err => {
+
+async function createProject() {
+  const installationPath = path.join(defaultPath, 'workflow');
+  
+  if (!fs.existsSync(installationPath)) {
+    fs.mkdirSync(installationPath);
+    console.log(`Le dossier ${installationPath} a été créé.`);
+  }
+
+
+  const choosenLangage = await langage()
+  const workDir = await inquirer.prompt({
+    name: 'directory',
+    type: 'input',
+    message: 'Enter a directory name for your project:',
+  });
+
+  log(`Creating a new ${choosenLangage} project in directory ${workDir.directory}`);
+
+  if (choosenLangage === 'React') {
+    await createReact(workDir.directory, installationPath)
+    log(`Successfully created a ${choosenLangage} project` )
+  }
+}
+
+
+createProject().catch(err => {
   console.error(err);
   process.exit(1);
 });
