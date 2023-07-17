@@ -6,6 +6,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { exec } from "child_process";
+import createAngular from "./filemaker.js"
 
 const log = console.log;
 const defaultPath = path.join(os.homedir(), 'Documents');
@@ -66,20 +67,41 @@ async function langage() {
   return answer.front || answer.back;
 }
 
-async function createCommand(projectPath, choosenLangage, workDir) {
+async function createCommand(projectPath, chosenLanguage, workDir) {
   const createAppPromise = new Promise((resolve, reject) => {
-    exec(`npm create vite@latest ${workDir.directory} -- --template ${choosenLangage.toLowerCase()}`,
-    { cwd: installationPath, shell: true },
-    (error, stdout, stdeer) => {
-      if (error) {
-        console.error(`An error occurred while creating the React project: ${error.message}`);
-        reject(error);
-        return;
+    exec(
+      `npm create vite@latest ${workDir.directory} -- --template ${chosenLanguage.toLowerCase()}`,
+      { cwd: installationPath, shell: true },
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`An error occurred while creating the ${chosenLanguage} project: ${error.message}`);
+          reject(error);
+          return;
+        }
+        resolve();
       }
+    );
+  });
+
+  createAppPromise
+    .then(() => {
+      exec(
+        'code .',
+        { shell: true, cwd: projectPath },
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error(`An error occurred while opening the project in the editor: ${error.message}`);
+            return;
+          }
+        }
+      );
     })
-    resolve()
-  })
+    .catch((error) => {
+      console.error(`An error occurred: ${error.message}`);
+    });
 }
+
+
 async function createProject() {
 
   if (!fs.existsSync(installationPath)) {
@@ -96,6 +118,9 @@ async function createProject() {
   log(`Creating a new ${choosenLangage} project in directory ${workDir.directory}`);
 
   const projectPath = path.join(installationPath, workDir.directory)
+  if (choosenLangage === 'Angular') {
+    createAngular()
+  }
   createCommand(projectPath, choosenLangage, workDir)
 
 }
