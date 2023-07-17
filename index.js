@@ -6,11 +6,12 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { exec } from "child_process";
-import createAngular from "./filemaker.js"
+import createAngular from "./filemaker.js";
+import ora from 'ora';
 
 const log = console.log;
 const defaultPath = path.join(os.homedir(), 'Documents');
-const installationPath = path.join(defaultPath, 'workflow')
+const installationPath = path.join(defaultPath, 'workflow');
 
 async function welcome() {
   log(chalk.green('You want to create a new development project!'));
@@ -69,29 +70,33 @@ async function langage() {
 
 async function createCommand(projectPath, chosenLanguage, workDir) {
   const createAppPromise = new Promise((resolve, reject) => {
+    const spinner = ora(`Creating ${chosenLanguage} project...`).start();
     exec(
       `npm create vite@latest ${workDir.directory} -- --template ${chosenLanguage.toLowerCase()}`,
       { cwd: installationPath, shell: true },
       (error, stdout, stderr) => {
         if (error) {
-          console.error(`An error occurred while creating the ${chosenLanguage} project: ${error.message}`);
+          spinner.fail(`An error occurred while creating the ${chosenLanguage} project: ${error.message}`);
           reject(error);
-          return;
+        } else {
+          spinner.succeed(`${chosenLanguage} project created successfully`);
+          resolve();
         }
-        resolve();
       }
     );
   });
 
   createAppPromise
     .then(() => {
+      const spinner = ora('Opening project in the editor...').start();
       exec(
         'code .',
         { shell: true, cwd: projectPath },
         (error, stdout, stderr) => {
           if (error) {
-            console.error(`An error occurred while opening the project in the editor: ${error.message}`);
-            return;
+            spinner.fail(`An error occurred while opening the project in the editor: ${error.message}`);
+          } else {
+            spinner.succeed('Project opened in the editor');
           }
         }
       );
@@ -101,30 +106,27 @@ async function createCommand(projectPath, chosenLanguage, workDir) {
     });
 }
 
-
 async function createProject() {
-
   if (!fs.existsSync(installationPath)) {
     fs.mkdirSync(installationPath);
     console.log(`Le dossier ${installationPath} a été créé.`);
   }
-  const choosenLangage = await langage()
+  const chosenLanguage = await langage();
 
   const workDir = await inquirer.prompt({
     name: 'directory',
     type: 'input',
     message: 'Enter a directory name for your project:',
   });
-  log(`Creating a new ${choosenLangage} project in directory ${workDir.directory}`);
+  log(`Creating a new ${chosenLanguage} project in directory ${workDir.directory}`);
 
-  const projectPath = path.join(installationPath, workDir.directory)
-  if (choosenLangage === 'Angular') {
-    createAngular()
+  const projectPath = path.join(installationPath, workDir.directory);
+  if (chosenLanguage === 'Angular') {
+    await createAngular(installationPath, workDir.directory, projectPath);
+  } else {
+    await createCommand(projectPath, chosenLanguage, workDir);
   }
-  createCommand(projectPath, choosenLangage, workDir)
-
 }
-
 
 createProject().catch(err => {
   console.error(err);
