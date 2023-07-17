@@ -5,10 +5,11 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import createReact from "./filemaker.js";
+import { exec } from "child_process";
 
 const log = console.log;
 const defaultPath = path.join(os.homedir(), 'Documents');
+const installationPath = path.join(defaultPath, 'workflow')
 
 async function welcome() {
   log(chalk.green('You want to create a new development project!'));
@@ -40,6 +41,11 @@ async function langage() {
         'React',
         'Vue',
         'Angular',
+        'Preact',
+        'Lit',
+        'Svelte',
+        'Solid',
+        'Qwik'
       ],
     });
   } else if (specialty === 'Backend') {
@@ -60,30 +66,38 @@ async function langage() {
   return answer.front || answer.back;
 }
 
-
+async function createCommand(projectPath, choosenLangage, workDir) {
+  const createAppPromise = new Promise((resolve, reject) => {
+    exec(`npm create vite@latest ${workDir.directory} -- --template ${choosenLangage.toLowerCase()}`,
+    { cwd: installationPath, shell: true },
+    (error, stdout, stdeer) => {
+      if (error) {
+        console.error(`An error occurred while creating the React project: ${error.message}`);
+        reject(error);
+        return;
+      }
+    })
+    resolve()
+  })
+}
 async function createProject() {
-  const installationPath = path.join(defaultPath, 'workflow');
-  
+
   if (!fs.existsSync(installationPath)) {
     fs.mkdirSync(installationPath);
     console.log(`Le dossier ${installationPath} a été créé.`);
   }
-
-
   const choosenLangage = await langage()
+
   const workDir = await inquirer.prompt({
     name: 'directory',
     type: 'input',
     message: 'Enter a directory name for your project:',
   });
-
   log(`Creating a new ${choosenLangage} project in directory ${workDir.directory}`);
 
-  if (choosenLangage === 'React') {
-    await createReact(workDir.directory, installationPath, choosenLangage)
-  } else if(choosenLangage === 'Angular') {
-    await createVue(workDir.directory, installationPath, choosenLangage)
-  }
+  const projectPath = path.join(installationPath, workDir.directory)
+  createCommand(projectPath, choosenLangage, workDir)
+
 }
 
 
