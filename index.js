@@ -6,7 +6,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { exec } from "child_process";
-import createAngular from "./filemaker.js";
+import { createAngular, createExpress } from "./filemaker.js";
 import ora from 'ora';
 
 const log = console.log;
@@ -123,10 +123,14 @@ async function createProject() {
   const projectPath = path.join(installationPath, workDir.directory);
   if (chosenLanguage === 'Angular') {
     await createAngular(installationPath, workDir.directory, projectPath);
+  } else if (chosenLanguage === 'Express') {
+    await createExpress(installationPath, workDir.directory, projectPath)
   } else {
     await createCommand(projectPath, chosenLanguage, workDir);
   }
-}
+    
+  }
+
 
 createProject().catch(err => {
   console.error(err);
