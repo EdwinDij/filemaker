@@ -1,13 +1,18 @@
 {
-  "name": "filemaker",
+  "name": "projekta",
   "version": "1.0.0",
-  "description": "file maker for project like react angular express etc",
+  "description": "CLI for automated project creation of frontend and backend applications",
+  "homepage": "https://edwin-dijeont.vercel.app/",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdwinDij"
+  },  
   "author": "Edwin Dijeont",
   "license": "ISC",
   "bin": "./index.js",
