@@ -6,7 +6,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { exec } from "child_process";
-import { createAngular, createExpress, createNestJS } from "./filemaker.js";
+import { createAngular, createExpress, createNestJS, createPython } from "./filemaker.js";
 import ora from 'ora';
 
 const log = console.log;
@@ -124,9 +124,11 @@ async function createProject() {
   if (chosenLanguage === 'Angular') {
     await createAngular(installationPath, workDir.directory, projectPath);
   } else if (chosenLanguage === 'Express') {
-    await createExpress(installationPath, workDir.directory, projectPath)
+    await createExpress(workDir.directory, projectPath)
   } else if (chosenLanguage === 'Nestjs') {
     await createNestJS(installationPath, workDir.directory, projectPath)
+  } else if(chosenLanguage === 'Python') {
+    await createPython(installationPath, workDir.directory, projectPath )
   }
   else {
     await createCommand(projectPath, chosenLanguage, workDir);

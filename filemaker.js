@@ -56,7 +56,7 @@ export async function createAngular(installationPath, workDir, projectPath) {
         });
 }
 
-export async function createExpress(installationPath, workDir, projectPath) {
+export async function createExpress(workDir, projectPath) {
     const createExpressPromise = new Promise((resolve, reject) => {
         const spinner = ora(`Creating express project...`).start();
 
@@ -223,4 +223,38 @@ export async function createNestJS(installationPath, workDir, projectPath) {
         .catch((error) => {
             console.error(`An error occurred: ${error.message}`);
         });
+}
+
+export async function createPython(installationPath, workDir, projectPath) {
+
+
+    const code = `##Les paramètres ci-dessous sont installés et configurés par défaut
+def hello_world():
+    print("Hello, World!")
+
+hello_world()
+
+def calculate_sum(a, b):
+    return a + b
+
+def greet(name):
+    print(f"Hello, {name}!")
+
+result = calculate_sum(5, 3)
+print("Sum:", result)
+
+greet("Alice")
+`
+
+if (!fs.existsSync(projectPath)) {
+    fs.mkdirSync(projectPath);
+    console.log(`Dossier ${workDir} crée.`);
+}
+
+
+process.chdir(projectPath);
+fs.writeFileSync(path.join(projectPath, 'main.py'), code, {encoding: 'utf-8'});
+
+console.log('Ouverture du fichier index.js et installation des packages.');
+execSync('code .');
 }
