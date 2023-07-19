@@ -2,6 +2,7 @@ import { exec, execSync } from 'child_process';
 import ora from 'ora';
 import path from 'path';
 import fs from "fs"
+import os from 'os'
 
 export async function createAngular(installationPath, workDir, projectPath) {
     const installAngularCli = new Promise((resolve, reject) => {
@@ -246,15 +247,59 @@ print("Sum:", result)
 greet("Alice")
 `
 
-if (!fs.existsSync(projectPath)) {
-    fs.mkdirSync(projectPath);
-    console.log(`Dossier ${workDir} crée.`);
+    if (!fs.existsSync(projectPath)) {
+        fs.mkdirSync(projectPath);
+        console.log(`Dossier ${workDir} crée.`);
+    }
+
+
+    process.chdir(projectPath);
+    fs.writeFileSync(path.join(projectPath, 'main.py'), code, { encoding: 'utf-8' });
+
+    console.log('Ouverture du fichier index.js et installation des packages.');
+    execSync('code .');
 }
 
+function createEnv(projectPath) {
+    
+    if (!fs.existsSync(projectPath)) {
+        fs.mkdirSync(projectPath);
+        console.log(`Dossier ${path.basename(projectPath)} crée.`);
+    }
 
-process.chdir(projectPath);
-fs.writeFileSync(path.join(projectPath, 'main.py'), code, {encoding: 'utf-8'});
+    console.log('Création de l\'environnement virtuel !');
+    process.chdir(projectPath);
+    execSync('python -m venv env', { stdio: 'inherit', shell: true });
+}
 
-console.log('Ouverture du fichier index.js et installation des packages.');
-execSync('code .');
+export function createDjango(projectPath) {
+    createEnv(projectPath);
+
+    const pipUpgrade = path.join(projectPath, 'env', 'Scripts', 'python.exe');
+    execSync(`${pipUpgrade} -m pip install --upgrade pip`, { stdio: 'inherit', shell: true });
+    execSync(`${pipUpgrade} -m pip install Django`, { stdio: 'inherit', shell: true });
+
+    console.log('django et pip installé');
+    createDjangoProject(projectPath);
+}
+
+function createDjangoProject(projectPath) {
+    const activateEnvWin = path.join(projectPath, 'env', 'Scripts', 'Activate.ps1');
+    const activateEnvMCLX = path.join(projectPath, 'env', 'bin', 'activate');
+
+    if (os.type() === 'Windows_NT') {
+        const commandWin = `powershell.exe -Command "${activateEnvWin}; django-admin startproject ${path.basename(projectPath)}"`;
+        execSync(commandWin, { stdio: 'inherit', shell: true });
+
+        console.log('Projet créé.\nLancement !');
+        process.chdir(projectPath);
+        execSync('code .', { stdio: 'inherit', shell: true });
+    } else if (os.type() === 'Linux') {
+        const commandLXMC = `source ${activateEnvMCLX} && django-admin startproject ${path.basename(projectPath)}`;
+        execSync(commandLXMC, { stdio: 'inherit', shell: true });
+
+        console.log('Projet créé.\nLancement !');
+        process.chdir(projectPath);
+        execSync('code .', { stdio: 'inherit', shell: true });
+    }
 }
