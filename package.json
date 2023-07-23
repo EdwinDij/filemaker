@@ -1,6 +1,6 @@
 {
   "name": "projekta",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "CLI for automated project creation of frontend and backend applications",
   "homepage": "https://edwin-dijeont.vercel.app/",
   "main": "index.js",
