@@ -6,7 +6,15 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { exec } from "child_process";
-import { createAngular, createExpress, createNestJS, createPython, createDjango } from "./filemaker.js";
+import {
+  createAngular,
+  createExpress,
+  createNestJS,
+  createPython,
+  createDjango,
+  createNext,
+  createNuxt
+} from "./filemaker.js";
 import ora from 'ora';
 import { Command } from "commander";
 //import Configstore from "configstore";
@@ -14,6 +22,7 @@ import { Command } from "commander";
 const log = console.log;
 const defaultPath = path.join(os.homedir(), 'Documents');
 const installationPath = path.join(defaultPath, 'workflow');
+let packageManager;
 
 async function welcome() {
   log(chalk.green('You want to create a new development project!'));
@@ -49,7 +58,9 @@ async function langage() {
         'Lit',
         'Svelte',
         'Solid',
-        'Qwik'
+        'Qwik',
+        'NextJs',
+        'NuxtJs'
       ],
     });
   } else if (specialty === 'Backend') {
@@ -72,11 +83,11 @@ async function langage() {
 
 
 
-async function createCommand(projectPath, chosenLanguage, workDir) {
+async function createCommand(projectPath, chosenLanguage, workDir, packageManager) {
   const program = new Command()
   program.option('-p, --package-manager <packageManager>', 'Specify the package manager (npm, yarn, pnpm)');
   program.parse(process.argv);
-  const packageManager = program.packageManager || program.opts().packageManager || 'npm';
+  packageManager = program.packageManager || program.opts().packageManager || 'npm';
   //console.log(program)
   //console.log(packageManager)
   let commandToExec;
@@ -155,8 +166,11 @@ async function createProject() {
     await createPython(installationPath, workDir.directory, projectPath)
   } else if (chosenLanguage === 'Django') {
     await createDjango(projectPath)
-  }
-  else {
+  } else if (chosenLanguage === 'NextJs') {
+    await createNext(projectPath, packageManager, installationPath)
+  } else if (chosenLanguage === 'NuxtJs') {
+    await createNuxt(projectPath, packageManager, installationPath)
+  } else {
     await createCommand(projectPath, chosenLanguage, workDir);
   }
 

@@ -3,6 +3,7 @@ import ora from 'ora';
 import path from 'path';
 import fs from "fs"
 import os from 'os'
+import { Command } from 'commander';
 
 export async function createAngular(installationPath, workDir, projectPath) {
     const installAngularCli = new Promise((resolve, reject) => {
@@ -261,47 +262,179 @@ greet("Alice")
 }
 
 function createEnv(projectPath) {
-  if (!fs.existsSync(projectPath)) {
-    fs.mkdirSync(projectPath);
-    console.log(`Dossier ${path.basename(projectPath)} créé.`);
-  }
+    if (!fs.existsSync(projectPath)) {
+        fs.mkdirSync(projectPath);
+        console.log(`Dossier ${path.basename(projectPath)} créé.`);
+    }
 
- const spinner = ora('Création de l\'environnement virtuel !').start();
-  process.chdir(projectPath);
-  execSync('python -m venv env', { stdio: 'inherit', shell: true });
-  spinner.succeed("env created")
+    const spinner = ora('Création de l\'environnement virtuel !').start();
+    process.chdir(projectPath);
+    execSync('python -m venv env', { stdio: 'inherit', shell: true });
+    spinner.succeed("env created")
 }
 
-export function createDjango(projectPath) {
-  const spinner = ora('Install Django...').start();
-  createEnv(projectPath);
+export async function createDjango(projectPath) {
+    const spinner = ora('Install Django...').start();
+    createEnv(projectPath);
 
-  const pipUpgrade = path.join(projectPath, 'env', 'Scripts', 'python.exe');
-  execSync(`${pipUpgrade} -m pip install --upgrade pip`, { stdio: 'inherit', shell: true });
-  execSync(`${pipUpgrade} -m pip install Django`, { stdio: 'inherit', shell: true });
+    const pipUpgrade = path.join(projectPath, 'env', 'Scripts', 'python.exe');
+    execSync(`${pipUpgrade} -m pip install --upgrade pip`, { stdio: 'inherit', shell: true });
+    execSync(`${pipUpgrade} -m pip install Django`, { stdio: 'inherit', shell: true });
 
-  spinner.succeed('Django installed and pip upgrade.');
-  createDjangoProject(projectPath);
+    spinner.succeed('Django installed and pip upgrade.');
+    createDjangoProject(projectPath);
 }
 
 function createDjangoProject(projectPath) {
-  const spinner = ora('Creating the Django project...').start();
-  const activateEnvWin = path.join(projectPath, 'env', 'Scripts', 'Activate.ps1');
-  const activateEnvMCLX = path.join(projectPath, 'env', 'bin', 'activate');
+    const spinner = ora('Creating the Django project...').start();
+    const activateEnvWin = path.join(projectPath, 'env', 'Scripts', 'Activate.ps1');
+    const activateEnvMCLX = path.join(projectPath, 'env', 'bin', 'activate');
 
-  if (os.type() === 'Windows_NT') {
-    const commandWin = `powershell.exe -Command "${activateEnvWin}; django-admin startproject ${path.basename(projectPath)}"`;
-    execSync(commandWin, { stdio: 'inherit', shell: true });
+    if (os.type() === 'Windows_NT') {
+        const commandWin = `powershell.exe -Command "${activateEnvWin}; django-admin startproject ${path.basename(projectPath)}"`;
+        execSync(commandWin, { stdio: 'inherit', shell: true });
 
-    process.chdir(projectPath);
-    execSync('code .', { stdio: 'inherit', shell: true });
-  } else if (os.type() === 'Linux') {
-    const commandLXMC = `source ${activateEnvMCLX} && django-admin startproject ${path.basename(projectPath)}`;
-    execSync(commandLXMC, { stdio: 'inherit', shell: true });
+        process.chdir(projectPath);
+        execSync('code .', { stdio: 'inherit', shell: true });
+    } else if (os.type() === 'Linux') {
+        const commandLXMC = `source ${activateEnvMCLX} && django-admin startproject ${path.basename(projectPath)}`;
+        execSync(commandLXMC, { stdio: 'inherit', shell: true });
 
-    process.chdir(projectPath);
-    execSync('code .', { stdio: 'inherit', shell: true });
-  }
+        process.chdir(projectPath);
+        execSync('code .', { stdio: 'inherit', shell: true });
+    }
 
-  spinner.succeed('Django project created.');
+    spinner.succeed('Django project created.');
+}
+
+export async function createNext(projectPath, packageManager, installationPath) {
+    const spinner = ora('Creation the Next project...').start();
+    const createNextapp = new Promise((resolve, reject) => {
+        exec(`npx create-next-app ${projectPath} --js --eslint --app --src-dir --no-tailwind --import-alias * --use-${packageManager}`,
+            { cwd: installationPath, shell: true },
+            (error, stdout, stderr) => {
+                if (error) {
+                    spinner.fail(`An error occurred while creating the Next project: ${error.message}`);
+                    reject(error);
+                } else {
+                    spinner.succeed(`NextJs project created successfully \n Vous avez utilisé: ${packageManager}`);
+                    resolve();
+                }
+            }
+        );
+    });
+
+    createNextapp
+        .then(() => {
+            const spinner = ora('Opening project in the editor...').start();
+            exec(
+                'code .',
+                { shell: true, cwd: projectPath },
+                (error, stdout, stderr) => {
+                    if (error) {
+                        spinner.fail(`An error occurred while opening the project in the editor: ${error.message}`);
+                    } else {
+                        spinner.succeed('Project opened in the editor');
+                    }
+                }
+            );
+        })
+        .catch((error) => {
+            console.error(`An error occurred: ${error.message}`);
+        });
+}
+
+
+export async function createNuxt(projectPath, packageManager, installationPath) {
+    const spinner = ora('Creation the Nuxt project...').start();
+    const program = new Command()
+    program.option('-p, --package-manager <packageManager>', 'Specify the package manager (npm, yarn, pnpm)');
+    program.parse(process.argv);
+    packageManager = program.packageManager || program.opts().packageManager || 'npm'
+    console.log(packageManager)
+    const createNuxtApp = new Promise((resolve, reject) => {
+        if (packageManager === 'pnpm') {
+            exec(`${packageManager} dlx nuxi@latest init ${projectPath} -y`,
+                { cwd: installationPath, shell: true },
+                (error, stdout, stderr) => {
+                    if (error) {
+                        spinner.fail(`An error occurred while creating the Nuxt project: ${error.message}`);
+                        reject(error);
+                    } else {
+                        spinner.succeed(`NuxtJs project created successfully \n Vous avez utilisé: ${packageManager}`);
+                        resolve();
+                    }
+                })
+        } else {
+            exec(`npx nuxi@latest init ${projectPath} -y`,
+                { cwd: installationPath, shell: true },
+                (error, stdout, stderr) => {
+                    if (error) {
+                        spinner.fail(`An error occurred while creating the Nuxt project: ${error.message}`);
+                        reject(error);
+                    } else {
+                        spinner.succeed(`NuxtJs project created successfully \n Vous avez utilisé: ${packageManager}`);
+                        resolve();
+                    }
+                })
+        }
+    })
+
+    createNuxtApp
+        .then(() => {
+            if (packageManager === 'pnpm') {
+                spinner.start('install dependencies...')
+                exec('pnpm install',
+                    { cwd: projectPath, shell: true },
+                    (error, stdout, stderr) => {
+                        if (error) {
+                            spinner.fail(`An error occurred while installing dependencies: ${error.message}`);
+                            reject(error);
+                        } else {
+                            spinner.succeed(`dependencies successfully installed \n Vous avez utilisé: ${packageManager}`);
+                        }
+                    }
+                )
+            } else if (packageManager === 'npm') {
+                spinner.start('install dependencies...')
+                exec('npm install',
+                    { cwd: projectPath, shell: true },
+                    (error, stdout, stderr) => {
+                        if (error) {
+                            spinner.fail(`An error occurred while installing dependencies: ${error.message}`);
+                            reject(error);
+                        } else {
+                            spinner.succeed(`dependencies successfully installed \n Vous avez utilisé: ${packageManager}`);
+                        }
+                    })
+            } else if (packageManager === 'yarn') {
+                spinner.start('install dependencies...')
+                exec('yarn install',
+                    { cwd: projectPath, shell: true },
+                    (error, stdout, stderr) => {
+                        if (error) {
+                            spinner.fail(`An error occurred while installing dependencies: ${error.message}`);
+                            reject(error);
+                        } else {
+                            spinner.succeed(`dependencies successfully installed \n Vous avez utilisé: ${packageManager}`);
+                        }
+                    })
+            } else {
+                spinner.fail('Unknow Package manager')
+            }
+            exec(
+                'code .',
+                { shell: true, cwd: projectPath },
+                (error, stdout, stderr) => {
+                    if (error) {
+                        spinner.fail(`An error occurred while opening the project in the editor: ${error.message}`);
+                    } else {
+                        spinner.succeed('Project opened in the editor');
+                    }
+                }
+            );
+        })
+        .catch((error) => {
+            console.error(`An error occurred: ${error.message}`);
+        });
 }
