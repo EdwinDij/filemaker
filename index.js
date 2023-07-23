@@ -8,6 +8,8 @@ import path from 'path';
 import { exec } from "child_process";
 import { createAngular, createExpress, createNestJS, createPython, createDjango } from "./filemaker.js";
 import ora from 'ora';
+import { Command } from "commander";
+//import Configstore from "configstore";
 
 const log = console.log;
 const defaultPath = path.join(os.homedir(), 'Documents');
@@ -68,18 +70,40 @@ async function langage() {
   return answer.front || answer.back;
 }
 
+
+
 async function createCommand(projectPath, chosenLanguage, workDir) {
+  const program = new Command()
+  program.option('-p, --package-manager <packageManager>', 'Specify the package manager (npm, yarn, pnpm)');
+  program.parse(process.argv);
+  const packageManager = program.packageManager || program.opts().packageManager || 'npm';
+  //console.log(program)
+  //console.log(packageManager)
+  let commandToExec;
+
+  switch (packageManager) {
+    case 'npm':
+      commandToExec = `npm create vite@latest ${workDir.directory} -- --template ${chosenLanguage.toLowerCase()}`;
+      break;
+    case 'yarn':
+      commandToExec = `yarn create vite ${workDir.directory} --template ${chosenLanguage.toLowerCase()}`;
+      break;
+    case 'pnpm':
+      commandToExec = `pnpm create vite ${workDir.directory} --template ${chosenLanguage.toLowerCase()}`;
+      break;
+    default:
+      console.error(`Invalid package manager: ${packageManager}`);
+      return;
+  }
   const createAppPromise = new Promise((resolve, reject) => {
     const spinner = ora(`Creating ${chosenLanguage} project...`).start();
-    exec(
-      `npm create vite@latest ${workDir.directory} -- --template ${chosenLanguage.toLowerCase()}`,
-      { cwd: installationPath, shell: true },
+    exec(commandToExec, { cwd: installationPath, shell: true },
       (error, stdout, stderr) => {
         if (error) {
           spinner.fail(`An error occurred while creating the ${chosenLanguage} project: ${error.message}`);
           reject(error);
         } else {
-          spinner.succeed(`${chosenLanguage} project created successfully`);
+          spinner.succeed(`${chosenLanguage} project created successfully \n Vous avez utilisé: ${packageManager}`);
           resolve();
         }
       }
@@ -127,8 +151,8 @@ async function createProject() {
     await createExpress(workDir.directory, projectPath)
   } else if (chosenLanguage === 'Nestjs') {
     await createNestJS(installationPath, workDir.directory, projectPath)
-  } else if(chosenLanguage === 'Python') {
-    await createPython(installationPath, workDir.directory, projectPath )
+  } else if (chosenLanguage === 'Python') {
+    await createPython(installationPath, workDir.directory, projectPath)
   } else if (chosenLanguage === 'Django') {
     await createDjango(projectPath)
   }
