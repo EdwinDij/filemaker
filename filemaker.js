@@ -438,3 +438,49 @@ export async function createNuxt(projectPath, packageManager, installationPath) 
             console.error(`An error occurred: ${error.message}`);
         });
 }
+
+export async function createJavaFile(projectPath, workDir, installationPath) {
+    const code = `// Ceci est un fichier exemple
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Entrez un entier n : ");
+        int n = scanner.nextInt();
+        scanner.close();
+
+        int sum = 0;
+        for (int i = 1; i <= n; i++) {
+            sum += i;
+        }
+
+        System.out.println("La somme des entiers de 1 à " + n + " est : " + sum);
+
+        String[] studentNames = {"Alice", "Bob", "Charlie", "David", "Eve"};
+
+        System.out.println("\nListe des noms d'étudiants :");
+        for (String name : studentNames) {
+            System.out.println(name);
+        }
+    }
+}
+ `;
+
+ console.log("install:",installationPath)
+ console.log("workdir:",workDir)
+ if (!fs.existsSync(workDir)) {
+    fs.mkdirSync(workDir);
+    console.log(`directory ${projectPath} create at: ${workDir}.`);
+}
+
+process.chdir(workDir);
+
+const javaFilePath = path.join(workDir, 'Main.java');
+fs.writeFileSync(javaFilePath, code, { encoding: 'utf-8' });
+console.log(`Fichier ${javaFilePath} créé.`);
+
+console.log('Ouverture du fichier Main.java dans l\'éditeur.');
+execSync('code .');
+}

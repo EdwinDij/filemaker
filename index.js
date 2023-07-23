@@ -13,7 +13,8 @@ import {
   createPython,
   createDjango,
   createNext,
-  createNuxt
+  createNuxt,
+  createJavaFile
 } from "./filemaker.js";
 import ora from 'ora';
 import { Command } from "commander";
@@ -73,6 +74,7 @@ async function langage() {
         'Nestjs',
         'Python',
         'Django',
+        'Java'
       ],
     });
   }
@@ -170,6 +172,8 @@ async function createProject() {
     await createNext(projectPath, packageManager, installationPath)
   } else if (chosenLanguage === 'NuxtJs') {
     await createNuxt(projectPath, packageManager, installationPath)
+  } else if (chosenLanguage === 'Java') {
+    await createJavaFile(workDir.directory, projectPath)
   } else {
     await createCommand(projectPath, chosenLanguage, workDir);
   }
