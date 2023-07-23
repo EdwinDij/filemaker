@@ -1,15 +1,13 @@
 {
   "name": "projekta",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "CLI for automated project creation of frontend and backend applications",
   "homepage": "https://edwin-dijeont.vercel.app/",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
-    "post-push": "node generate-changelog.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -24,8 +22,5 @@
     "commander": "^11.0.0",
     "inquirer": "^9.2.8",
     "ora": "^6.3.1"
-  },
-  "devDependencies": {
-    "conventional-changelog-cli": "^3.0.0"
   }
 }
